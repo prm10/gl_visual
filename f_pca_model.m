@@ -1,4 +1,4 @@
-function [P,E,ts_limit,spe_limit]=f_pca_model(input_x,L,confidence)
+function [P,E,spe_limit,ts_limit]=f_pca_model(input_x,L,confidence)
 [P,S,~] = svd(input_x'*input_x/(size(input_x,1)-1));
 E=diag(S);
 
