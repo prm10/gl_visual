@@ -3,7 +3,7 @@ function [P,E,spe_limit,ts_limit]=f_pca_model(input_x,L,confidence)
 E=diag(S);
 
 N=size(input_x,2);
-F_a=finv(1-confidence,L,N-L);
+F_a=finv(confidence,L,N-L);
 ts_limit=(N-1)*(N+1)*L/N/(N-L)*F_a;
 theta1=sum(E(L+1:end));
 theta2=sum(E(L+1:end).^2);

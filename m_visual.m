@@ -22,7 +22,7 @@ function varargout = m_visual(varargin)
 
 % Edit the above text to modify the response to help m_visual
 
-% Last Modified by GUIDE v2.5 19-May-2016 20:45:19
+% Last Modified by GUIDE v2.5 20-May-2016 00:06:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -95,8 +95,8 @@ data_train0=data0(idx_begin_train:idx_end_train,:);
 date_train0=date0(idx_begin_train:idx_end_train,:);
 data_test0=data0(idx_begin_test:idx_end_test,:);
 date_test0=date0(idx_begin_test:idx_end_test,:);
-len=str2num(get(handles.edit_len,'string'));
-step=str2num(get(handles.edit_step,'string'));
+len=str2double(get(handles.edit_len,'string'));
+step=str2double(get(handles.edit_step,'string'));
 idx_now=1;
 
 function update_model(handles)
@@ -107,14 +107,16 @@ global ...
     M_train S_train ...
     L confidence ...
     P_train E_train ts_limit spe_limit ...
+    output_train spe_train ts_train ...
     output_test spe_test ts_test;
 M_train=mean(data_train0);
 S_train=std(data_train0);
 data_train_sd=(data_train0-ones(size(data_train0,1),1)*M_train)./(ones(size(data_train0,1),1)*S_train);
 data_test_sd=(data_test0-ones(size(data_test0,1),1)*M_train)./(ones(size(data_test0,1),1)*S_train);
-L=str2num(get(handles.edit_L,'string'));
-confidence=str2num(get(handles.edit_confidence,'string'));
+L=str2double(get(handles.edit_L,'string'));
+confidence=str2double(get(handles.edit_confidence,'string'));
 [P_train,E_train,spe_limit,ts_limit]=f_pca_model(data_train_sd,L,confidence);
+[output_train,spe_train,ts_train]=f_pca_indicater(data_train_sd,P_train,E_train,L);
 [output_test,spe_test,ts_test]=f_pca_indicater(data_test_sd,P_train,E_train,L);
 
 function update_plot(handles)
@@ -125,10 +127,15 @@ global ...
     M_train S_train ...
     L confidence ...
     P_train E_train ts_limit spe_limit ...
+    output_train spe_train ts_train ...
     output_test spe_test ts_test;
 idx_now=min(max(idx_now,len),size(data_test0,1));
 range=idx_now-len+1:idx_now;
 output_show=output_test(range,1:2);
+set(handles.edit_time_now,'string',datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS'));
+
+% scatter(handles.axes1,output_train(:,1),output_train(:,2),'.');
+% scatter(handles.axes1,output_test(:,1),output_test(:,2),'.');
 
 scatter(handles.axes1,output_show(:,1),...
     output_show(:,2),...
@@ -136,8 +143,15 @@ scatter(handles.axes1,output_show(:,1),...
     (linspace(0.7,0,length(range)).^0.3)'*ones(1,3),...
     'filled');
 hold on;
-plot();
+expression=strcat('t1^2/',num2str(E_train(1)),'+t2^2/',num2str(E_train(2)),'=',num2str(ts_limit));
+x1_range=5+sqrt(ts_limit*E_train(1));
+x2_range=5+sqrt(ts_limit*E_train(2));
+
+ezplot(expression,[-x1_range,x1_range,-x2_range,x2_range]);
 hold off;
+axis equal;
+axis([-x1_range,x1_range,-x2_range,x2_range]);
+drawnow;
 
 % --- Outputs from this function are returned to the command line.
 function varargout = m_visual_OutputFcn(hObject, eventdata, handles) 
@@ -247,7 +261,9 @@ function edit_len_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_len (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global len;
+len=str2double(get(hObject,'String'));
+update_plot(handles);
 % Hints: get(hObject,'String') returns contents of edit_len as text
 %        str2double(get(hObject,'String')) returns contents of edit_len as a double
 
@@ -270,7 +286,17 @@ function slider1_Callback(hObject, eventdata, handles)
 % hObject    handle to slider1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global ...
+    data_train0 date_train0 ...
+    data_test0 date_test0 ...
+    step len idx_now ...
+    M_train S_train ...
+    L confidence ...
+    P_train E_train ts_limit spe_limit ...
+    output_train spe_train ts_train ...
+    output_test spe_test ts_test;
+idx_now=floor(get(hObject,'Value')*size(data_test0,1));
+update_plot(handles);
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
@@ -299,13 +325,20 @@ function pb_right_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_right (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global step idx_now data_test0;
+idx_now=idx_now+step;
+update_plot(handles);
+set(handles.slider1,'value',idx_now/size(data_test0,1));
 
 % --- Executes on button press in pb_left.
 function pb_left_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_left (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global step idx_now data_test0;
+idx_now=idx_now-step;
+update_plot(handles);
+set(handles.slider1,'value',idx_now/size(data_test0,1));
 
 
 
@@ -313,6 +346,8 @@ function edit_step_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_step (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global step;
+step=str2double(get(hObject,'String'));
 
 % Hints: get(hObject,'String') returns contents of edit_step as text
 %        str2double(get(hObject,'String')) returns contents of edit_step as a double
@@ -359,7 +394,10 @@ function edit_confidence_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_confidence (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global confidence;
+confidence=str2double(get(hObject,'String'));
+update_model(handles);
+update_plot(handles);
 % Hints: get(hObject,'String') returns contents of edit_confidence as text
 %        str2double(get(hObject,'String')) returns contents of edit_confidence as a double
 
@@ -398,3 +436,11 @@ function edit_time_now_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in pb_import_data.
+function pb_import_data_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_import_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+update_data(handles);
