@@ -54,6 +54,13 @@ function m_visual_OpeningFcn(hObject, eventdata, handles, varargin)
 update_data(handles)
 update_model(handles);
 update_plot(handles);
+global auto_plot_timer;
+auto_plot_timer=timer(...
+    'Name','MyTimer',...
+    'Period',1,...
+    'ExecutionMode','fixedSpacing',...
+    'UserData',handles,...
+    'TimerFcn',{@update_timer,handles});
 
 % Choose default command line output for m_visual
 handles.output = hObject;
@@ -68,7 +75,7 @@ function update_data(handles)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
-    step len idx_now;
+    step len idx_now direction;
 No=[2,3,5];
 GL=[7,1,5];
 ipt=[7;8;13;17;20;24];
@@ -98,6 +105,7 @@ date_test0=date0(idx_begin_test:idx_end_test,:);
 len=str2double(get(handles.edit_len,'string'));
 step=str2double(get(handles.edit_step,'string'));
 idx_now=1;
+direction=1;
 
 function update_model(handles)
 global ...
@@ -133,25 +141,30 @@ idx_now=min(max(idx_now,len),size(data_test0,1));
 range=idx_now-len+1:idx_now;
 output_show=output_test(range,1:2);
 set(handles.edit_time_now,'string',datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS'));
-
+set(handles.slider1,'value',idx_now/size(data_test0,1));
 % scatter(handles.axes1,output_train(:,1),output_train(:,2),'.');
 % scatter(handles.axes1,output_test(:,1),output_test(:,2),'.');
-
+axis(handles.axes1);
 scatter(handles.axes1,output_show(:,1),...
     output_show(:,2),...
     linspace(30,50,length(range)),...
     (linspace(0.7,0,length(range)).^0.3)'*ones(1,3),...
     'filled');
+axis(handles.axes1);
 hold on;
 expression=strcat('t1^2/',num2str(E_train(1)),'+t2^2/',num2str(E_train(2)),'=',num2str(ts_limit));
 x1_range=5+sqrt(ts_limit*E_train(1));
 x2_range=5+sqrt(ts_limit*E_train(2));
-
-ezplot(expression,[-x1_range,x1_range,-x2_range,x2_range]);
+ezplot(handles.axes1,expression,[-x1_range,x1_range,-x2_range,x2_range]);
 hold off;
 axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range]);
-drawnow;
+axis(handles.axes1);
+
+function update_timer(obj,eventdata,handles)
+global idx_now direction step;
+idx_now=idx_now+direction*step;
+update_plot(handles);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = m_visual_OutputFcn(hObject, eventdata, handles) 
@@ -318,27 +331,38 @@ function pb_control_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_control (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global auto_plot_timer;
+str1=get(handles.pb_control,'string');
+if strcmp(str1,'start')
+%     set(auto_plot_timer,'UserData',handles);
+%     set(auto_plot_timer,'TimerFcn',{@update_timer,handles});
+    start(auto_plot_timer);
+    set(handles.pb_control,'string','stop');
+else
+    stop(auto_plot_timer);
+    set(handles.pb_control,'string','start');
+end
 
 % --- Executes on button press in pb_right.
 function pb_right_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_right (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global step idx_now data_test0;
-idx_now=idx_now+step;
+global step idx_now direction data_test0;
+direction=1;
+idx_now=idx_now+direction*step;
 update_plot(handles);
-set(handles.slider1,'value',idx_now/size(data_test0,1));
 
 % --- Executes on button press in pb_left.
 function pb_left_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_left (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global step idx_now data_test0;
-idx_now=idx_now-step;
+global step idx_now direction data_test0;
+direction=-1;
+idx_now=idx_now+direction*step;
 update_plot(handles);
-set(handles.slider1,'value',idx_now/size(data_test0,1));
+
 
 
 
