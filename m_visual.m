@@ -144,7 +144,8 @@ global ...
 idx_now=min(max(idx_now,len),size(data_test0,1));
 range=idx_now-len+1:idx_now;
 output_show=output_test(range,1:2);
-set(handles.edit_time_now,'string',datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS'));
+time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
+set(handles.edit_time_now,'string',time_str);
 set(handles.slider1,'value',idx_now/size(data_test0,1));
 % scatter(handles.axes1,output_train(:,1),output_train(:,2),'.');
 % scatter(handles.axes1,output_test(:,1),output_test(:,2),'.');
@@ -165,6 +166,7 @@ axis([-x1_range,x1_range,-x2_range,x2_range]);
 axes(plot_handles);
 axis equal;
 grid;
+title(time_str);
 drawnow;
 
 function update_timer(obj,eventdata)
@@ -473,4 +475,6 @@ function pb_import_data_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_import_data (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-update_data(handles);
+update_data(handles)
+update_model(handles);
+update_plot(handles);
