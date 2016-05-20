@@ -51,16 +51,19 @@ function m_visual_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to m_visual (see VARARGIN)
+
+global auto_plot_timer plot_handles;
+auto_plot_timer=timer(...
+    'Name','MyTimer',...
+    'Period',0.2,...
+    'ExecutionMode','fixedSpacing',...
+    'UserData',handles,...
+    'TimerFcn',{@update_timer});
+figure;
+plot_handles=gca;
 update_data(handles)
 update_model(handles);
 update_plot(handles);
-global auto_plot_timer;
-auto_plot_timer=timer(...
-    'Name','MyTimer',...
-    'Period',1,...
-    'ExecutionMode','fixedSpacing',...
-    'UserData',handles,...
-    'TimerFcn',{@update_timer,handles});
 
 % Choose default command line output for m_visual
 handles.output = hObject;
@@ -136,7 +139,8 @@ global ...
     L confidence ...
     P_train E_train ts_limit spe_limit ...
     output_train spe_train ts_train ...
-    output_test spe_test ts_test;
+    output_test spe_test ts_test ...
+    plot_handles;
 idx_now=min(max(idx_now,len),size(data_test0,1));
 range=idx_now-len+1:idx_now;
 output_show=output_test(range,1:2);
@@ -144,25 +148,28 @@ set(handles.edit_time_now,'string',datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM
 set(handles.slider1,'value',idx_now/size(data_test0,1));
 % scatter(handles.axes1,output_train(:,1),output_train(:,2),'.');
 % scatter(handles.axes1,output_test(:,1),output_test(:,2),'.');
-axis(handles.axes1);
-scatter(handles.axes1,output_show(:,1),...
+axes(plot_handles);
+scatter(output_show(:,1),...
     output_show(:,2),...
     linspace(30,50,length(range)),...
     (linspace(0.7,0,length(range)).^0.3)'*ones(1,3),...
     'filled');
-axis(handles.axes1);
+
 hold on;
 expression=strcat('t1^2/',num2str(E_train(1)),'+t2^2/',num2str(E_train(2)),'=',num2str(ts_limit));
 x1_range=5+sqrt(ts_limit*E_train(1));
 x2_range=5+sqrt(ts_limit*E_train(2));
-ezplot(handles.axes1,expression,[-x1_range,x1_range,-x2_range,x2_range]);
+ezplot(expression,[-x1_range,x1_range,-x2_range,x2_range]);
 hold off;
-axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range]);
-axis(handles.axes1);
+axes(plot_handles);
+axis equal;
+grid;
+drawnow;
 
-function update_timer(obj,eventdata,handles)
+function update_timer(obj,eventdata)
 global idx_now direction step;
+handles=obj.UserData;
 idx_now=idx_now+direction*step;
 update_plot(handles);
 
@@ -334,8 +341,7 @@ function pb_control_Callback(hObject, eventdata, handles)
 global auto_plot_timer;
 str1=get(handles.pb_control,'string');
 if strcmp(str1,'start')
-%     set(auto_plot_timer,'UserData',handles);
-%     set(auto_plot_timer,'TimerFcn',{@update_timer,handles});
+    set(auto_plot_timer,'UserData',handles);
     start(auto_plot_timer);
     set(handles.pb_control,'string','stop');
 else
