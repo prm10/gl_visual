@@ -22,7 +22,7 @@ function varargout = m_visual(varargin)
 
 % Edit the above text to modify the response to help m_visual
 
-% Last Modified by GUIDE v2.5 21-May-2016 21:48:09
+% Last Modified by GUIDE v2.5 22-May-2016 15:10:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,12 +78,14 @@ function update_data(handles)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
-    step len idx_now direction;
+    step len idx_now direction ...
+    GL_no;
 No=[2,3,5];
 GL=[7,1,5];
 ipt=[7;8;13;17;20;24];
 plotvariable;
-gl_no=2;%¸ßÂ¯±àºÅ
+GL_no=str2double(get(handles.edit_GL_no,'string'));
+gl_no=find(No==GL_no,1);%¸ßÂ¯±àºÅ
 filepath=strcat('..\GL_data\',num2str(No(gl_no)),'\');
 hours=24*5;
 minutes=30;
@@ -479,3 +481,44 @@ update_data(handles)
 update_model(handles);
 update_plot(handles);
 
+
+
+% --- Executes on button press in pb_fault_time.
+function pb_fault_time_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_fault_time (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global GL_no
+[filename, pathname] = uigetfile('*.mat','Ñ¡Ôñ¹ÊÕÏÊ±¼ä',fullfile('fault_time',num2str(GL_no)));
+if ~isequal(filename,0)
+	load(fullfile(pathname, filename));
+	set(handles.edit_date_begin_train,'String',begin_train_str);
+    set(handles.edit_date_end_train,'String',end_train_str);
+    set(handles.edit_date_begin_test,'String',begin_test_str);
+    set(handles.edit_date_end_test,'String',end_test_str);
+end
+guidata(hObject, handles);
+
+
+
+
+function edit_GL_no_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_GL_no (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_GL_no as text
+%        str2double(get(hObject,'String')) returns contents of edit_GL_no as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_GL_no_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_GL_no (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
