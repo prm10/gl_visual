@@ -22,7 +22,7 @@ function varargout = m_visual(varargin)
 
 % Edit the above text to modify the response to help m_visual
 
-% Last Modified by GUIDE v2.5 20-May-2016 00:06:27
+% Last Modified by GUIDE v2.5 21-May-2016 21:48:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -152,7 +152,7 @@ set(handles.slider1,'value',idx_now/size(data_test0,1));
 axes(plot_handles);
 scatter(output_show(:,1),...
     output_show(:,2),...
-    linspace(30,50,length(range)),...
+    linspace(10,50,length(range)),...
     (linspace(0.7,0,length(range)).^0.3)'*ones(1,3),...
     'filled');
 
@@ -478,3 +478,4 @@ function pb_import_data_Callback(hObject, eventdata, handles)
 update_data(handles)
 update_model(handles);
 update_plot(handles);
+
