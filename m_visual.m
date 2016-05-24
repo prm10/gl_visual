@@ -80,13 +80,16 @@ global ...
     data_test0 date_test0 ...
     step len idx_now direction ...
     GL_no;
-No=[2,3,5];
-GL=[7,1,5];
 ipt=[7;8;13;17;20;24];
-plotvariable;
 GL_no=str2double(get(handles.edit_GL_no,'string'));
-gl_no=find(No==GL_no,1);%高炉编号
-filepath=strcat('..\GL_data\',num2str(No(gl_no)),'\');
+% No=[2,3,5];
+% GL=[7,1,5];
+% plotvariable;
+% gl_no=find(No==GL_no,1);%高炉编号
+% filepath=strcat('..\GL_data\',num2str(No(gl_no)),'\');
+% load(strcat(filepath,'data.mat'));
+% data0=data0(:,commenDim{GL(gl_no)});% 选取共有变量
+[data0,date0]=f_get_raw_data(GL_no);
 hours=24*5;
 minutes=30;
 opt=struct(...
@@ -95,10 +98,6 @@ opt=struct(...
     'len',360*hours, ...%计算PCA所用时长范围
     'step',6*minutes ...
     );
-
-load(strcat(filepath,'data.mat'));
-data0=data0(:,commenDim{GL(gl_no)});% 选取共有变量
-
 idx_begin_train=find(date0>datenum(get(handles.edit_date_begin_train,'string')),1);
 idx_end_train=find(date0>datenum(get(handles.edit_date_end_train,'string')),1);
 idx_begin_test=find(date0>datenum(get(handles.edit_date_begin_test,'string')),1);
