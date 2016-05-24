@@ -2,7 +2,7 @@ function normal_bool=f_abnormal_expand(data_st)
 n=size(data_st,1);
 processed=false(n,1);
 normal_bool=true(n,1);
-abnormal=find(data_st>3);
+abnormal=find(data_st>2);
 for i1=abnormal'
     if ~processed(i1)
         j1=i1;

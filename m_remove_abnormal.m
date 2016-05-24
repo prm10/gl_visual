@@ -14,7 +14,7 @@ normalState=...
 %% ·Ö¶Î
 [m,n]=size(data0);
 normal_bool=false(m,n);
-segmentation_length=8000*5;
+segmentation_length=8000*1/4;
 t1=1;
 wb=waitbar(0);
 while t1<m
@@ -33,10 +33,14 @@ while t1<m
 end
 close(wb);
 %% »­Í¼ÑéÖ¤
+loc=3e5;
+range=loc:loc+segmentation_length;
 for i1=1:length(commenVar)
-    a=find(~normal_bool(:,i1));
+    a=find(~normal_bool(range,i1));
+    y1=data0(range,i1);
+    y2=y1(a);
     figure;
-    plot(1:m,data0(:,i1),a,data0(a,i1),'o');
+    plot(1:length(range),y1,a,y2,'o');
     title(commenVar{i1});
 end
 
