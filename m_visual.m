@@ -22,7 +22,7 @@ function varargout = m_visual(varargin)
 
 % Edit the above text to modify the response to help m_visual
 
-% Last Modified by GUIDE v2.5 22-May-2016 15:10:54
+% Last Modified by GUIDE v2.5 01-Jun-2016 10:55:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -79,25 +79,11 @@ global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
     step len idx_now direction ...
+    hotwind_bool_train0 hotwind_bool_test0 ...
     GL_no;
-ipt=[7;8;13;17;20;24];
 GL_no=str2double(get(handles.edit_GL_no,'string'));
-% No=[2,3,5];
-% GL=[7,1,5];
-% plotvariable;
-% gl_no=find(No==GL_no,1);%高炉编号
-% filepath=strcat('..\GL_data\',num2str(No(gl_no)),'\');
-% load(strcat(filepath,'data.mat'));
-% data0=data0(:,commenDim{GL(gl_no)});% 选取共有变量
 [data0,date0]=f_get_raw_data(GL_no);
-hours=24*5;
-minutes=30;
-opt=struct(...
-    'date_str_begin','2013-02-19 23:57', ... %开始时间
-    'date_str_end','2013-02-25 16:45:14', ...   %结束时间
-    'len',360*hours, ...%计算PCA所用时长范围
-    'step',6*minutes ...
-    );
+hotwind_bool=f_get_data(GL_no,'hotwind_bool');
 idx_begin_train=find(date0>datenum(get(handles.edit_date_begin_train,'string')),1);
 idx_end_train=find(date0>datenum(get(handles.edit_date_end_train,'string')),1);
 idx_begin_test=find(date0>datenum(get(handles.edit_date_begin_test,'string')),1);
@@ -106,6 +92,8 @@ data_train0=data0(idx_begin_train:idx_end_train,:);
 date_train0=date0(idx_begin_train:idx_end_train,:);
 data_test0=data0(idx_begin_test:idx_end_test,:);
 date_test0=date0(idx_begin_test:idx_end_test,:);
+hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
+hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
 len=str2double(get(handles.edit_len,'string'));
 step=str2double(get(handles.edit_step,'string'));
 idx_now=1;
@@ -115,6 +103,7 @@ function update_model(handles)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
+    hotwind_bool_train0 hotwind_bool_test0 ...
     step len idx_now ...
     M_train S_train ...
     L confidence ...
@@ -156,7 +145,6 @@ scatter(output_show(:,1),...
     linspace(10,50,length(range)),...
     (linspace(0.7,0,length(range)).^0.3)'*ones(1,3),...
     'filled');
-
 hold on;
 expression=strcat('t1^2/',num2str(E_train(1)),'+t2^2/',num2str(E_train(2)),'=',num2str(ts_limit));
 x1_range=5+sqrt(ts_limit*E_train(1));
@@ -168,7 +156,39 @@ axes(plot_handles);
 axis equal;
 grid;
 title(time_str);
-drawnow;
+
+function update_plot_all(train_bool)
+global ...
+    data_train0 date_train0 ...
+    data_test0 date_test0 ...
+    step len idx_now ...
+    M_train S_train ...
+    L confidence ...
+    P_train E_train ts_limit spe_limit ...
+    output_train spe_train ts_train ...
+    output_test spe_test ts_test ...
+    plot_handles;
+idx_now=min(max(idx_now,len),size(data_test0,1));
+range=idx_now-len+1:idx_now;
+output_show=output_test(range,1:2);
+time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
+axes(plot_handles);
+if train_bool
+    scatter(output_train(:,1),output_train(:,2),'.');
+else
+    scatter(output_test(:,1),output_test(:,2),'.');
+end
+hold on;
+expression=strcat('t1^2/',num2str(E_train(1)),'+t2^2/',num2str(E_train(2)),'=',num2str(ts_limit));
+x1_range=5+sqrt(ts_limit*E_train(1));
+x2_range=5+sqrt(ts_limit*E_train(2));
+ezplot(expression,[-x1_range,x1_range,-x2_range,x2_range]);
+hold off;
+axes(plot_handles);
+axis equal;
+axis([-x1_range,x1_range,-x2_range,x2_range]);
+grid;
+title(time_str);
 
 function update_timer(obj,eventdata)
 global idx_now direction step;
@@ -521,3 +541,18 @@ function edit_GL_no_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in pb_train_set.
+function pb_train_set_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_train_set (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+update_plot_all(true);
+
+% --- Executes on button press in pb_test_set.
+function pb_test_set_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_test_set (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+update_plot_all(false);
