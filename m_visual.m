@@ -92,8 +92,14 @@ data_train0=data0(idx_begin_train:idx_end_train,:);
 date_train0=date0(idx_begin_train:idx_end_train,:);
 data_test0=data0(idx_begin_test:idx_end_test,:);
 date_test0=date0(idx_begin_test:idx_end_test,:);
+% È¥µô»»Â¯ÈÅ¶¯
 hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
 hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
+data_train0=data_train0(hotwind_bool_train0,:);
+date_train0=date_train0(hotwind_bool_train0,:);
+data_test0=data_test0(hotwind_bool_test0,:);
+date_test0=date_test0(hotwind_bool_test0,:);
+
 len=str2double(get(handles.edit_len,'string'));
 step=str2double(get(handles.edit_step,'string'));
 idx_now=1;
