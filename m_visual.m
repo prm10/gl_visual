@@ -97,8 +97,8 @@ hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
 hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
 data_train0=data_train0(hotwind_bool_train0,:);
 date_train0=date_train0(hotwind_bool_train0,:);
-data_test0=data_test0(hotwind_bool_test0,:);
-date_test0=date_test0(hotwind_bool_test0,:);
+% data_test0=data_test0(hotwind_bool_test0,:);
+% date_test0=date_test0(hotwind_bool_test0,:);
 
 len=str2double(get(handles.edit_len,'string'));
 step=str2double(get(handles.edit_step,'string'));
@@ -162,6 +162,7 @@ axes(plot_handles);
 axis equal;
 grid;
 title(time_str);
+drawnow;
 
 function update_plot_all(train_bool)
 global ...
