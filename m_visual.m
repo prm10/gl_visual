@@ -89,7 +89,7 @@ idx_begin_train=find(date0>datenum(get(handles.edit_date_begin_train,'string')),
 idx_end_train=find(date0>datenum(get(handles.edit_date_end_train,'string')),1);
 idx_begin_test=find(date0>datenum(get(handles.edit_date_begin_test,'string')),1);
 idx_end_test=find(date0>datenum(get(handles.edit_date_end_test,'string')),1);
-range_fault=1:360;
+range_fault=1:720;
 data_train0=data0(idx_begin_train:idx_end_train,:);
 date_train0=date0(idx_begin_train:idx_end_train,:);
 data_test0=data0(idx_begin_test:idx_end_test,:);
@@ -276,8 +276,6 @@ ylabel('t_2');
 zlabel('t_3');
 drawnow;
 
-
-
 function update_plot_all_3d(choice)
 global ...
     data_train0 date_train0 ...
@@ -307,7 +305,9 @@ switch choice
     case 2
         scatter3(output_test(:,1),output_test(:,2),output_test(:,3),'.');
     case 3
-        scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.',output_test(:,1),output_test(:,2),output_test(:,3),'.');
+        scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.');
+        hold on;
+        scatter3(output_test(:,1),output_test(:,2),output_test(:,3),'.');
 end
 hold on;
 surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
