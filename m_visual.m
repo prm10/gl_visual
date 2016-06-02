@@ -22,7 +22,7 @@ function varargout = m_visual(varargin)
 
 % Edit the above text to modify the response to help m_visual
 
-% Last Modified by GUIDE v2.5 01-Jun-2016 10:55:29
+% Last Modified by GUIDE v2.5 02-Jun-2016 15:44:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,6 +78,7 @@ function update_data(handles)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
+    data_fault0 date_fault0 ... 
     step len idx_now direction ...
     hotwind_bool_train0 hotwind_bool_test0 ...
     GL_no;
@@ -88,10 +89,13 @@ idx_begin_train=find(date0>datenum(get(handles.edit_date_begin_train,'string')),
 idx_end_train=find(date0>datenum(get(handles.edit_date_end_train,'string')),1);
 idx_begin_test=find(date0>datenum(get(handles.edit_date_begin_test,'string')),1);
 idx_end_test=find(date0>datenum(get(handles.edit_date_end_test,'string')),1);
+range_fault=1:360;
 data_train0=data0(idx_begin_train:idx_end_train,:);
 date_train0=date0(idx_begin_train:idx_end_train,:);
 data_test0=data0(idx_begin_test:idx_end_test,:);
 date_test0=date0(idx_begin_test:idx_end_test,:);
+data_fault0=data0(idx_end_test+range_fault,:);
+date_fault0=date0(idx_end_test+range_fault,:);
 % 去掉换炉扰动
 hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
 hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
@@ -125,6 +129,12 @@ confidence=str2double(get(handles.edit_confidence,'string'));
 [P_train,E_train,spe_limit,ts_limit]=f_pca_model(data_train_sd,L,confidence);
 [output_train,spe_train,ts_train]=f_pca_indicater(data_train_sd,P_train,E_train,L);
 [output_test,spe_test,ts_test]=f_pca_indicater(data_test_sd,P_train,E_train,L);
+
+function update_timer(obj,eventdata)
+global idx_now direction step;
+handles=obj.UserData;
+idx_now=idx_now+direction*step;
+update_plot(handles);
 
 function update_plot(handles)
 global L;
@@ -170,17 +180,19 @@ axes(plot_handles);
 axis equal;
 grid;
 title(time_str);
+xlabel('t_1');
+ylabel('t_2');
 drawnow;
 
-function update_plot_all(handles)
+function update_plot_all(choice) %train or test
 global L;
 if L==2
-    update_plot_all_2d(handles);
+    update_plot_all_2d(choice);
 else
-    update_plot_all_3d(handles);
+    update_plot_all_3d(choice);
 end
 
-function update_plot_all_2d(train_bool)
+function update_plot_all_2d(choice)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
@@ -194,10 +206,13 @@ global ...
 idx_now=min(max(idx_now,len),size(data_test0,1));
 time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
 axes(plot_handles);
-if train_bool
-    scatter(output_train(:,1),output_train(:,2),'.');
-else
-    scatter(output_test(:,1),output_test(:,2),'.');
+switch choice
+    case 1
+        scatter(output_train(:,1),output_train(:,2),'.');
+    case 2
+        scatter(output_test(:,1),output_test(:,2),'.');
+    case 3
+        scatter(output_train(:,1),output_train(:,2),'.',output_test(:,1),output_test(:,2),'.');
 end
 hold on;
 expression=strcat('t1^2/',num2str(E_train(1)),'+t2^2/',num2str(E_train(2)),'=',num2str(ts_limit));
@@ -210,6 +225,8 @@ axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range]);
 grid;
 title(time_str);
+xlabel('t_1');
+ylabel('t_2');
 
 function update_plot_3d(handles)
 global ...
@@ -238,8 +255,7 @@ zr=sqrt(E_train(3)*ts_limit);
 x1_range=2+sqrt(ts_limit*E_train(1));
 x2_range=2+sqrt(ts_limit*E_train(2));
 x3_range=2+sqrt(ts_limit*E_train(3));
-ttl={'主视图','左视图','俯视图','三维图'};
-angle={[0,0],[-90,0],[0 90],[-37.5,30]};
+angle_view=plot_handles.View;
 %开始画图
 axes(plot_handles);
 scatter3(output_show(:,1),...
@@ -253,13 +269,16 @@ surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
 hold off;
 axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range,-x3_range,x3_range]);
-%  view(angle{i1});
+view(angle_view);
 title(strcat(time_str));
+xlabel('t_1');
+ylabel('t_2');
+zlabel('t_3');
 drawnow;
 
 
 
-function update_plot_all_3d(train_bool)
+function update_plot_all_3d(choice)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
@@ -272,33 +291,53 @@ global ...
     plot_handles;
 idx_now=min(max(idx_now,len),size(data_test0,1));
 time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
-axes(plot_handles);
-if train_bool
-    scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.');
-else
-    scatter3(output_test(:,1),output_test(:,2),output_test(:,3),'.');
-end
-hold on;
 xr=sqrt(E_train(1)*ts_limit);
 yr=sqrt(E_train(2)*ts_limit);
 zr=sqrt(E_train(3)*ts_limit);
 [x, y, z] = ellipsoid(0,0,0,xr,yr,zr,30);
-surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
 x1_range=2+sqrt(ts_limit*E_train(1));
 x2_range=2+sqrt(ts_limit*E_train(2));
 x3_range=2+sqrt(ts_limit*E_train(3));
+angle_view=plot_handles.View;
+%开始画图
+axes(plot_handles);
+switch choice
+    case 1
+        scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.');
+    case 2
+        scatter3(output_test(:,1),output_test(:,2),output_test(:,3),'.');
+    case 3
+        scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.',output_test(:,1),output_test(:,2),output_test(:,3),'.');
+end
+hold on;
+surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
 hold off;
 axes(plot_handles);
 axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range,-x3_range,x3_range]);
-grid;
+view(angle_view);
 title(time_str);
+xlabel('t_1');
+ylabel('t_2');
+zlabel('t_3');
+drawnow;
 
-function update_timer(obj,eventdata)
-global idx_now direction step;
-handles=obj.UserData;
-idx_now=idx_now+direction*step;
-update_plot(handles);
+function update_plot_raw_data()
+global ...
+    data_train0 date_train0 ...
+    data_test0 date_test0 ...
+    data_fault0 date_fault0 ... 
+    step len idx_now direction ...
+    hotwind_bool_train0 hotwind_bool_test0 ...
+    GL_no;
+plotvariable;
+ipt=[7;8;13;17;20;24];
+figure;
+for i1=1:6
+    subplot(3,2,i1);
+    plot(date_test0-date_test0(1),data_test0(:,ipt(i1)),date_fault0-date_test0(1),data_fault0(:,ipt(i1)));
+    title(commenVar{ipt(i1)});
+end
 
 % --- Outputs from this function are returned to the command line.
 function varargout = m_visual_OutputFcn(hObject, eventdata, handles) 
@@ -632,7 +671,8 @@ function edit_GL_no_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_GL_no (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global GL_no;
+GL_no=str2double(get(hObject,'String'));
 % Hints: get(hObject,'String') returns contents of edit_GL_no as text
 %        str2double(get(hObject,'String')) returns contents of edit_GL_no as a double
 
@@ -656,7 +696,7 @@ function pb_train_set_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % update_plot_all(true);
-update_plot_all(true);
+update_plot_all(1);
 
 % --- Executes on button press in pb_test_set.
 function pb_test_set_Callback(hObject, eventdata, handles)
@@ -664,4 +704,19 @@ function pb_test_set_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % update_plot_all(false);
-update_plot_all(false);
+update_plot_all(2);
+
+
+% --- Executes on button press in pb_train_test.
+function pb_train_test_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_train_test (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+update_plot_all(3);
+
+% --- Executes on button press in pb_plot.
+function pb_plot_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_plot (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+update_plot_raw_data();
