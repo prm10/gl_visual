@@ -127,6 +127,14 @@ confidence=str2double(get(handles.edit_confidence,'string'));
 [output_test,spe_test,ts_test]=f_pca_indicater(data_test_sd,P_train,E_train,L);
 
 function update_plot(handles)
+global L;
+if L==2
+    update_plot_2d(handles);
+else
+    update_plot_3d(handles);
+end
+
+function update_plot_2d(handles)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
@@ -164,7 +172,15 @@ grid;
 title(time_str);
 drawnow;
 
-function update_plot_all(train_bool)
+function update_plot_all(handles)
+global L;
+if L==2
+    update_plot_all_2d(handles);
+else
+    update_plot_all_3d(handles);
+end
+
+function update_plot_all_2d(train_bool)
 global ...
     data_train0 date_train0 ...
     data_test0 date_test0 ...
@@ -176,8 +192,6 @@ global ...
     output_test spe_test ts_test ...
     plot_handles;
 idx_now=min(max(idx_now,len),size(data_test0,1));
-range=idx_now-len+1:idx_now;
-output_show=output_test(range,1:2);
 time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
 axes(plot_handles);
 if train_bool
@@ -194,6 +208,89 @@ hold off;
 axes(plot_handles);
 axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range]);
+grid;
+title(time_str);
+
+function update_plot_3d(handles)
+global ...
+    data_train0 date_train0 ...
+    data_test0 date_test0 ...
+    step len idx_now ...
+    M_train S_train ...
+    L confidence ...
+    P_train E_train ts_limit spe_limit ...
+    output_train spe_train ts_train ...
+    output_test spe_test ts_test ...
+    plot_handles;
+%数据处理
+idx_now=min(max(idx_now,len),size(data_test0,1));
+range=idx_now-len+1:idx_now;
+output_show=output_test(range,1:3);
+time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
+set(handles.edit_time_now,'string',time_str);
+set(handles.slider1,'value',idx_now/size(data_test0,1));
+cm=(linspace(0.7,0,length(range)).^0.3)';
+color_mat=[cm,cm/2,cm/2];
+xr=sqrt(E_train(1)*ts_limit);
+yr=sqrt(E_train(2)*ts_limit);
+zr=sqrt(E_train(3)*ts_limit);
+[x, y, z] = ellipsoid(0,0,0,xr,yr,zr,30);
+x1_range=2+sqrt(ts_limit*E_train(1));
+x2_range=2+sqrt(ts_limit*E_train(2));
+x3_range=2+sqrt(ts_limit*E_train(3));
+ttl={'主视图','左视图','俯视图','三维图'};
+angle={[0,0],[-90,0],[0 90],[-37.5,30]};
+%开始画图
+axes(plot_handles);
+scatter3(output_show(:,1),...
+    output_show(:,2),...
+    output_show(:,3),...
+    linspace(5,30,length(range)),...
+    color_mat,...
+    'filled');
+hold on;
+surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
+hold off;
+axis equal;
+axis([-x1_range,x1_range,-x2_range,x2_range,-x3_range,x3_range]);
+%  view(angle{i1});
+title(strcat(time_str));
+drawnow;
+
+
+
+function update_plot_all_3d(train_bool)
+global ...
+    data_train0 date_train0 ...
+    data_test0 date_test0 ...
+    step len idx_now ...
+    M_train S_train ...
+    L confidence ...
+    P_train E_train ts_limit spe_limit ...
+    output_train spe_train ts_train ...
+    output_test spe_test ts_test ...
+    plot_handles;
+idx_now=min(max(idx_now,len),size(data_test0,1));
+time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
+axes(plot_handles);
+if train_bool
+    scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.');
+else
+    scatter3(output_test(:,1),output_test(:,2),output_test(:,3),'.');
+end
+hold on;
+xr=sqrt(E_train(1)*ts_limit);
+yr=sqrt(E_train(2)*ts_limit);
+zr=sqrt(E_train(3)*ts_limit);
+[x, y, z] = ellipsoid(0,0,0,xr,yr,zr,30);
+surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
+x1_range=2+sqrt(ts_limit*E_train(1));
+x2_range=2+sqrt(ts_limit*E_train(2));
+x3_range=2+sqrt(ts_limit*E_train(3));
+hold off;
+axes(plot_handles);
+axis equal;
+axis([-x1_range,x1_range,-x2_range,x2_range,-x3_range,x3_range]);
 grid;
 title(time_str);
 
@@ -431,7 +528,10 @@ function edit_L_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_L (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+global L;
+L=str2double(get(hObject,'String'));
+update_model(handles);
+update_plot(handles);
 % Hints: get(hObject,'String') returns contents of edit_L as text
 %        str2double(get(hObject,'String')) returns contents of edit_L as a double
 
@@ -555,6 +655,7 @@ function pb_train_set_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_train_set (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% update_plot_all(true);
 update_plot_all(true);
 
 % --- Executes on button press in pb_test_set.
@@ -562,4 +663,5 @@ function pb_test_set_Callback(hObject, eventdata, handles)
 % hObject    handle to pb_test_set (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+% update_plot_all(false);
 update_plot_all(false);
