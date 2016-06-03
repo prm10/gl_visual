@@ -161,14 +161,14 @@ output_show=output_test(range,1:2);
 time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
 set(handles.edit_time_now,'string',time_str);
 set(handles.slider1,'value',idx_now/size(data_test0,1));
-% scatter(handles.axes1,output_train(:,1),output_train(:,2),'.');
-% scatter(handles.axes1,output_test(:,1),output_test(:,2),'.');
+% color_mat=(linspace(0.7,0,length(range)).^0.3)'*ones(1,3);
+color_mat=parula(length(range));
 axes(plot_handles);
 scatter(output_show(:,1),...
     output_show(:,2),...
     linspace(10,50,length(range)),...
-    (linspace(0.7,0,length(range)).^0.3)'*ones(1,3),...
-    'filled');
+    color_mat,...
+    'filled','MarkerEdgeColor',[.8,.8,.8]);
 hold on;
 expression=strcat('t1^2/',num2str(E_train(1)),'+t2^2/',num2str(E_train(2)),'=',num2str(ts_limit));
 x1_range=5+sqrt(ts_limit*E_train(1));
@@ -246,8 +246,9 @@ output_show=output_test(range,1:3);
 time_str=datestr(date_test0(idx_now),'yyyy-mm-dd HH:MM:SS');
 set(handles.edit_time_now,'string',time_str);
 set(handles.slider1,'value',idx_now/size(data_test0,1));
-cm=(linspace(0.7,0,length(range)).^0.3)';
-color_mat=[cm,cm/2,cm/2];
+% cm=(linspace(0.7,0,length(range)).^0.3)';
+% color_mat=[cm,cm/2,cm/2];
+color_mat=parula(length(range));
 xr=sqrt(E_train(1)*ts_limit);
 yr=sqrt(E_train(2)*ts_limit);
 zr=sqrt(E_train(3)*ts_limit);
@@ -261,11 +262,12 @@ axes(plot_handles);
 scatter3(output_show(:,1),...
     output_show(:,2),...
     output_show(:,3),...
-    linspace(5,30,length(range)),...
+    linspace(10,50,length(range)),...
     color_mat,...
-    'filled');
+    'filled',...
+    'MarkerEdgeColor',[.8,.8,.8]);
 hold on;
-surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
+surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.7,0.7,0.7]);
 hold off;
 axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range,-x3_range,x3_range]);
@@ -274,6 +276,7 @@ title(strcat(time_str));
 xlabel('t_1');
 ylabel('t_2');
 zlabel('t_3');
+set(gca,'color',[0.3,0.3,0.3]);
 drawnow;
 
 function update_plot_all_3d(choice)
@@ -301,16 +304,36 @@ angle_view=plot_handles.View;
 axes(plot_handles);
 switch choice
     case 1
-        scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.');
+        color_mat=parula(size(output_train,1));
+        scatter3(output_train(:,1),output_train(:,2),output_train(:,3)...
+            ,10 ...
+            ,color_mat ...
+            ,'filled'...
+            ,'MarkerEdgeColor',[.7,.7,.7]);
     case 2
-        scatter3(output_test(:,1),output_test(:,2),output_test(:,3),'.');
+        color_mat=parula(size(output_test,1));
+        scatter3(output_test(:,1),output_test(:,2),output_test(:,3)...
+            ,10 ...
+            ,color_mat ...
+            ,'filled'...
+            ,'MarkerEdgeColor',[.7,.7,.7]);
     case 3
-        scatter3(output_train(:,1),output_train(:,2),output_train(:,3),'.');
+        color_mat=parula(size(output_train,1));
+        scatter3(output_train(:,1),output_train(:,2),output_train(:,3)...
+            ,10 ...
+            ,color_mat ...
+            ,'filled'...
+            ,'MarkerEdgeColor',[.7,.7,.7]);
         hold on;
-        scatter3(output_test(:,1),output_test(:,2),output_test(:,3),'.');
+        color_mat=parula(size(output_test,1));
+        scatter3(output_test(:,1),output_test(:,2),output_test(:,3)...
+            ,10 ...
+            ,color_mat ...
+            ,'filled'...
+            ,'MarkerEdgeColor',[.7,.7,.7]);
 end
 hold on;
-surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.8,0.8,0.8]);
+surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.7,0.7,0.7]);
 hold off;
 axes(plot_handles);
 axis equal;
@@ -320,6 +343,7 @@ title(time_str);
 xlabel('t_1');
 ylabel('t_2');
 zlabel('t_3');
+set(gca,'color',[0.3,0.3,0.3]);
 drawnow;
 
 function update_plot_raw_data()
