@@ -85,6 +85,7 @@ global ...
 GL_no=str2double(get(handles.edit_GL_no,'string'));
 [data0,date0]=f_get_raw_data(GL_no);
 hotwind_bool=f_get_data(GL_no,'hotwind_bool');
+normalState=f_get_data(GL_no,'normalState');
 idx_begin_train=find(date0>datenum(get(handles.edit_date_begin_train,'string')),1);
 idx_end_train=find(date0>datenum(get(handles.edit_date_end_train,'string')),1);
 idx_begin_test=find(date0>datenum(get(handles.edit_date_begin_test,'string')),1);
@@ -97,9 +98,11 @@ date_test0=date0(idx_begin_test:idx_end_test,:);
 data_fault0=data0(idx_end_test+range_fault,:);
 date_fault0=date0(idx_end_test+range_fault,:);
 % È¥µô»»Â¯ÈÅ¶¯
+ns_bool_train0=normalState(idx_begin_train:idx_end_train,:);
+ns_bool_test0=normalState(idx_begin_test:idx_end_test,:);
 hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
 hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
-data_train0=data_train0(hotwind_bool_train0,:);
+data_train0=data_train0(hotwind_bool_train0&ns_bool_train0,:);
 date_train0=date_train0(hotwind_bool_train0,:);
 % data_test0=data_test0(hotwind_bool_test0,:);
 % date_test0=date_test0(hotwind_bool_test0,:);
@@ -267,7 +270,7 @@ scatter3(output_show(:,1),...
     'filled',...
     'MarkerEdgeColor',[.8,.8,.8]);
 hold on;
-surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.7,0.7,0.7]);
+surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.9,0.9,0.9]);
 hold off;
 axis equal;
 axis([-x1_range,x1_range,-x2_range,x2_range,-x3_range,x3_range]);
@@ -276,7 +279,7 @@ title(strcat(time_str));
 xlabel('t_1');
 ylabel('t_2');
 zlabel('t_3');
-set(gca,'color',[0.3,0.3,0.3]);
+set(gca,'color',[0.4,0.4,0.4]);
 drawnow;
 
 function update_plot_all_3d(choice)
@@ -333,7 +336,7 @@ switch choice
             ,'MarkerEdgeColor',[.7,.7,.7]);
 end
 hold on;
-surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.7,0.7,0.7]);
+surf(x, y, z,'EdgeColor','none','FaceAlpha',0.5,'FaceColor',[0.9,0.9,0.9]);
 hold off;
 axes(plot_handles);
 axis equal;
@@ -343,7 +346,7 @@ title(time_str);
 xlabel('t_1');
 ylabel('t_2');
 zlabel('t_3');
-set(gca,'color',[0.3,0.3,0.3]);
+set(gca,'color',[0.4,0.4,0.4]);
 drawnow;
 
 function update_plot_raw_data()
@@ -359,7 +362,9 @@ ipt=[7;8;13;17;20;24];
 figure;
 for i1=1:6
     subplot(3,2,i1);
-    plot(date_test0-date_test0(1),data_test0(:,ipt(i1)),date_fault0-date_test0(1),data_fault0(:,ipt(i1)));
+    plot(date_train0-date_train0(1),data_train0(:,ipt(i1))...
+    ,date_test0-date_train0(1),data_test0(:,ipt(i1))...
+    ,date_fault0-date_train0(1),data_fault0(:,ipt(i1)));
     title(commenVar{ipt(i1)});
 end
 

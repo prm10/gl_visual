@@ -1,13 +1,14 @@
 clc;clear;close all;
 GL_no=3;
 [data0,date0,commenVar]=f_get_raw_data(GL_no);
-%% 去除异常炉况
+% 去除异常炉况
 normalState=...
     data0(:,17)>0.32    ...
     & data0(:,8)>20     ...
     & data0(:,20)<450   ...
     & data0(:,7)>2000;
 [m,n]=size(data0);
+f_save_data(GL_no,'normalState',normalState);
 %% 去除输入变量
 % filter_manual=[2:6,8:24];
 % data0=data0(:,filter_manual);
@@ -128,3 +129,4 @@ end
 %}
 %% 保存数据
 f_save_data(GL_no,'hotwind_bool',hotwind_bool);%GL_no,file_name,data0
+
