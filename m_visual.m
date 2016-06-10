@@ -97,13 +97,13 @@ data_test0=data0(idx_begin_test:idx_end_test,:);
 date_test0=date0(idx_begin_test:idx_end_test,:);
 data_fault0=data0(idx_end_test+range_fault,:);
 date_fault0=date0(idx_end_test+range_fault,:);
-% È¥µô»»Â¯ÈÅ¶¯
+% È¥µô»»Â¯ÈÅ¶¯¡¢Òì³£Â¯¿ö
 ns_bool_train0=normalState(idx_begin_train:idx_end_train,:);
-ns_bool_test0=normalState(idx_begin_test:idx_end_test,:);
 hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
-hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
 data_train0=data_train0(hotwind_bool_train0&ns_bool_train0,:);
-date_train0=date_train0(hotwind_bool_train0,:);
+date_train0=date_train0(hotwind_bool_train0&ns_bool_train0,:);
+% ns_bool_test0=normalState(idx_begin_test:idx_end_test,:);
+% hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
 % data_test0=data_test0(hotwind_bool_test0,:);
 % date_test0=date_test0(hotwind_bool_test0,:);
 
@@ -125,8 +125,10 @@ global ...
     output_test spe_test ts_test;
 M_train=mean(data_train0);
 S_train=std(data_train0);
-data_train_sd=(data_train0-ones(size(data_train0,1),1)*M_train)./(ones(size(data_train0,1),1)*S_train);
-data_test_sd=(data_test0-ones(size(data_test0,1),1)*M_train)./(ones(size(data_test0,1),1)*S_train);
+data_train_sd=bsxfun(@rdivide,bsxfun(@minus,data_train0,M_train),S_train);
+data_test_sd=bsxfun(@rdivide,bsxfun(@minus,data_test0,M_train),S_train);
+% data_train_sd=(data_train0-ones(size(data_train0,1),1)*M_train)./(ones(size(data_train0,1),1)*S_train);
+% data_test_sd=(data_test0-ones(size(data_test0,1),1)*M_train)./(ones(size(data_test0,1),1)*S_train);
 L=str2double(get(handles.edit_L,'string'));
 confidence=str2double(get(handles.edit_confidence,'string'));
 [P_train,E_train,spe_limit,ts_limit]=f_pca_model(data_train_sd,L,confidence);
