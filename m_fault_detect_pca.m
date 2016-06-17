@@ -19,7 +19,7 @@ info={
 ipt=[7;8;13;17;20;24];
 plotvariable;
 GL_no=3;%高炉编号
-choose=6;% 故障编号
+choose=7;% 故障编号
 opt=struct(...
     'date_begin_train',info{choose,2}, ...
     'date_end_train',info{choose,3}, ...
@@ -43,10 +43,10 @@ data_fault0=data0(idx_end_test+range_fault,:);
 date_fault0=date0(idx_end_test+range_fault,:);
 clear data0 date0;
 % 去掉换炉扰动、异常炉况
-ns_bool_train0=normalState(idx_begin_train:idx_end_train,:);
-hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
-data_train0=data_train0(hotwind_bool_train0&ns_bool_train0,:);
-date_train0=date_train0(hotwind_bool_train0&ns_bool_train0,:);
+% ns_bool_train0=normalState(idx_begin_train:idx_end_train,:);
+% hotwind_bool_train0=hotwind_bool(idx_begin_train:idx_end_train,:);
+% data_train0=data_train0(hotwind_bool_train0&ns_bool_train0,:);
+% date_train0=date_train0(hotwind_bool_train0&ns_bool_train0,:);
 
 % ns_bool_test0=normalState(idx_begin_test:idx_end_test,:);
 % hotwind_bool_test0=hotwind_bool(idx_begin_test:idx_end_test,:);
@@ -62,8 +62,8 @@ TS_lim=zeros(len_test,1);
 SPE_lim=zeros(len_test,1);
 Abnormal=false(len_test,1);
 % 初始化
-L=11; % 主元个数
-confidence=0.999; % 置信度
+L=9; % 主元个数
+confidence=0.9999; % 置信度
 recursive=false; %是否迭代模型
 data_train1=data_train0;
 tic;
